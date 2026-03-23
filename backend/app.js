@@ -2,7 +2,7 @@ import express from "express";
 import {createServer} from "node:http";
 import {Server} from "socket.io";
 import mongoose from "mongoose";
-import { connectTOSocket } from "./src/controllers/socketmanager.js";
+import { connectToSocket } from "./src/controllers/socketmanager.js";
 
 import usersRoutes from "./src/routes/users.routes.js";
 
@@ -11,7 +11,7 @@ import cors from "cors";
 
 const app= express();
 const server= createServer(app);
-const io = connectTOSocket(server);
+const io = connectToSocket(server);
 
 app.set("port", (process.env.PORT || 8000));
 app.use(cors());
