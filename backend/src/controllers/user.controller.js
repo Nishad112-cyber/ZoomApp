@@ -1,54 +1,97 @@
 import httpStatus from "http-status";
 import { User } from "../models/user.model.js";
-import bycrpt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
 
-const login = async (req,res) =>{
- const {username, password}= req.body;
+// 🔐 LOGIN
+export const login = async (req, res) => {
+  const { username, password } = req.body;
 
-   if(!username || !password){
-     res.status(400).json({message: "please provide "});
-   }
+  // check empty fields
+  if (!username || !password) {
+    return res.status(400).json({
+      message: "Please provide username and password",
+    });
+  }
 
-    try{
-       const user = await User.find({username});
-       if(!user){
-        res.status(httpStatus.NOT_FOUND).json({message :"provide valide "});
-       }
+  try {
+    // find user
+    const user = await User.findOne({ username });
 
-       if(bcrypt.compare(password, user.password)){
-        let token = crypto.randomBytes(20).toString("hex");
-        user.token= token;
-        await user.save();
-        res.status(httpStatus.OK).json({token : "token"})
-       }
-
-    }catch(e){
-        return res.status(500).json({message :"something went wrong "})
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).json({
+        message: "User not found",
+      });
     }
-}
 
-const Register= async (req, res) =>{
-    const {name, username, password}= req.body;
+    // compare password
+    const isMatch = await bcrypt.compare(password, user.password);
 
-    try{
-       const existingtUser =await User.findOne({username});
-       if(existingtUser){
-        return res.status(httpStatus.FOUND).json({message : `user exist already`});
-
-       }
-       const hashedPassword = await bcrypt.hash(password, 10);
-       const newUser = new User({
-        name :name,
-        username: username,
-        password:hashedPassword
-       });
-
-       await newUser.save();
-       res.status(httpStatus.CREATED).json({message: `user registered`});
-
-    }catch(e){
-   res.json({message : `something is wrong ${e}`});
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid password",
+      });
     }
-}
 
-export {login , Register}
+    // generate token
+    const token = crypto.randomBytes(20).toString("hex");
+
+    user.token = token;
+    await user.save();
+
+    return res.status(httpStatus.OK).json({
+      token: token,
+      message: "Login successful",
+    });
+
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+// 📝 REGISTER
+export const Register = async (req, res) => {
+  const { name, username, password } = req.body;
+
+  if (!name || !username || !password) {
+    return res.status(400).json({
+      message: "Please provide all fields",
+    });
+  }
+
+  try {
+    // check existing user
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      return res.status(httpStatus.CONFLICT).json({
+        message: "User already exists",
+      });
+    }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // create user
+    const newUser = new User({
+      name,
+      username,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    return res.status(httpStatus.CREATED).json({
+      message: "User registered successfully",
+    });
+
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};

@@ -12,7 +12,7 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { AuthContext } from '../Contexts/AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
 import { Snackbar } from '@mui/material';
 
 
@@ -43,7 +43,7 @@ export default function Authentication() {
         try {
             if (formState === 0) {
 
-                await handleLogin(username, password)
+                let result = await handleLogin(username, password)
 
 
             }
@@ -70,23 +70,19 @@ export default function Authentication() {
         <ThemeProvider theme={defaultTheme}>
             <Grid container component="main" sx={{ height: '100vh' }}>
                 <CssBaseline />
-
                 <Grid
                     item
-                    xs={12}
+                    xs={false}
                     sm={4}
                     md={7}
                     sx={{
-                        height: '100vh',
-                        backgroundImage: 'url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80)',
+                        backgroundImage: 'url(https://source.unsplash.com/random?wallpapers)',
                         backgroundRepeat: 'no-repeat',
                         backgroundColor: (t) =>
                             t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }}
-
-                    
                 />
                 <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
                     <Box
@@ -137,7 +133,6 @@ export default function Authentication() {
                                 onChange={(e) => setUsername(e.target.value)}
 
                             />
-
                             <TextField
                                 margin="normal"
                                 required
@@ -147,10 +142,12 @@ export default function Authentication() {
                                 value={password}
                                 type="password"
                                 onChange={(e) => setPassword(e.target.value)}
+
                                 id="password"
                             />
 
                             <p style={{ color: "red" }}>{error}</p>
+
                             <Button
                                 type="button"
                                 fullWidth
